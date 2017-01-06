@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>房间建模1</title>
+    <style>
+        *{
+            margin:0;
+            padding:0;
+        }
+    </style>
+    <link href="./library/bootstrap/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+    <link href="buttons.css" rel="stylesheet" type="text/css"/>
+    <script src="./library/bootstrap/js/jquery.min.js"></script>
+    <script src="./library/bootstrap/js/bootstrap.min.js"></script>
+    <link href="primer.css" type="text/css" rel="stylesheet">
+</head>
+<body onload="main()">
+
+<canvas id="webgl" width="1440" height="820">
+    Please use a browser that supports "canvas"
+</canvas>
+
+<div class="control">
+    <img src="images/left.png" id="toleft">
+    <img src="images/ahead.png" id="toahead">
+    <img src="images/backward.png" id="tobackward">
+    <img src="images/right.png" id="toright">
+</div>
+
+
+<div class="goods">
+    <div class="certain_good" style="display: none" id="code1" onclick="showPaperUse()">
+        <img src="./images/code1.png"  data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+    </div>
+    <div class="certain_good" style="display: none" id="code2" onclick="showPaperUse()">
+        <img src="./images/code2.png"  data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+    </div>
+    <div class="certain_good" style="display: none" id="code3" onclick="showPaperUse()">
+        <img src="./images/code3.png"  data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+    </div>
+    <div class="certain_good" style="display: none" id="code4" onclick="showPaperUse()">
+        <img src="./images/code4.png"  data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+    </div>
+    <div class="certain_good" style="display: none" id="mouse" onclick="useMouse()">
+        <img src="./images/mouse.png"  data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+    </div>
+    <div class="certain_good" style="display: none" id="codebox" onclick="openbox()">
+        <img src="./images/box.png"  data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">
+    </div>
+</div>
+
+<div class="anouncement">
+    <div class="anounc_title">系统消息<span class="glyphicon glyphicon-volume-up"></span></div>
+    <div class="anounc_content" id="anounContent">
+        <div class="controlPosition"><p style="margin-top: 6px"> 点光源位置</p>
+            <div>
+                <div class="button-group">
+                    <button type="button" class="button-tiny button button-pill button-primary changePosition" to="lightP1">-</button>
+                    <button type="button" class="button-tiny button button-pill" id="lightP1">-150</button>
+                    <button type="button" class="button-tiny button button-pill button-primary changePosition" to="lightP1">+</button>
+                </div>
+            </div>
+            <div>
+                <div class="button-group">
+                    <button type="button" class="button-tiny button button-pill button-primary changePosition" to="lightP2">-</button>
+                    <button type="button" class="button-tiny button button-pill" id="lightP2">0</button>
+                    <button type="button" class="button-tiny button button-pill button-primary changePosition" to="lightP2">+</button>
+                </div>
+            </div>
+            <div>
+                <div class="button-group">
+                    <button type="button" class="button-tiny button button-pill button-primary changePosition" to="lightP3">-</button>
+                    <button type="button" class="button-tiny button button-pill" id="lightP3">-50</button>
+                    <button type="button" class="button-tiny button button-pill button-primary changePosition" to="lightP3">+</button>
+                </div>
+            </div></div>
+    </div>
+</div>
+
+
+
+<div id="test1"></div>
+<script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec4 a_Position;
+    attribute vec4 a_Color;
+    attribute vec4 a_Normal;
+    attribute vec3 a_TextCord;
+    uniform vec3 eye_Position;
+    uniform mat4 u_MvpMatrix;
+    uniform mat4 u_ModelMatrix;
+    uniform mat4 u_NormalMatrix;
+    varying vec4 v_Color;
+    varying vec3 v_TextCord;
+    uniform float u_Clicked;
+    uniform float u_ifCertainColor;
+    varying float v_Clicked;
+    uniform vec4 u_tempColor;
+    varying vec4 v_tempColor;
+    uniform vec4 u_certainColor;
+    uniform vec3 u_lightColor;
+    uniform vec3 u_light_position;
+    void main() {
+      v_tempColor = u_tempColor;
+      v_Clicked = u_Clicked;
+      vec4 vertexPosition = u_ModelMatrix * a_Position;
+      vec3 lightDirection0 = normalize(u_light_position - vec3(vertexPosition));//计算入射光方向 phong模型
+      vec3 eyetoDirection0 = normalize(eye_Position - vec3(vertexPosition));//计算定点到视点的方向 phong模型
+      vec3 lightDirection = vec3(0.0, -0.87, 0.87);
+      vec3 lightDirection2 = vec3(1.0, -0.87, -0.87);
+      vec3 lightDirection3 = vec3(-1.0, -0.87, -0.87);
+      vec3 lightColor = u_lightColor;//环境光颜色
+      gl_Position = u_MvpMatrix * a_Position;
+      vec3 normal = normalize(vec3(u_NormalMatrix * a_Normal));//计算定点法线向量
+
+      float tempreflec = dot(2.0 * normal, lightDirection0);
+      if(tempreflec<0.0)tempreflec=0.0;
+      vec3 reflectDirection = normalize(normal * tempreflec - lightDirection0);//计算反射光方向 phong模型
+
+      float nDotL0 = max(dot(normal, lightDirection0), 0.0);
+      vec3 diffuse = vec3(0.8, 0.8, 0.8) * a_Color.rgb * nDotL0;//计算漫反射光颜色
+      vec3 ambient = lightColor * a_Color.rgb;//计算环境光产生的光颜色
+
+      float tempColorWeight = dot(eyetoDirection0 , reflectDirection) ;
+
+      if(tempColorWeight<0.0)tempColorWeight=0.0;
+
+      vec3 specularColor = lightColor*tempColorWeight*tempColorWeight*tempColorWeight * 1.5; //计算镜面反射光强,phong模型结果
+      v_Color = vec4(diffuse + ambient + specularColor, a_Color.a);
+
+      float nDotL = max(dot(normal, lightDirection), 0.0);
+      float nDotL2 = max(dot(normal, lightDirection2), 0.0);
+      float nDotL3 = max(dot(normal, lightDirection3), 0.0);//平行光的时候用，计算光线方向和法向量点积
+      //v_Color = a_Color;
+      v_TextCord = a_TextCord;
+      //v_Color = vec4(a_Color.rgb * nDotL +a_Color.rgb * nDotL2+a_Color.rgb * nDotL3, a_Color.a);
+      //v_Color = vec4(a_Color.rgb * nDotL + lightColor * a_Color.rgb , a_Color.a);
+
+      if(u_ifCertainColor == 1.0){
+           v_Color = vec4(u_certainColor.rgb  +specularColor,u_certainColor.a);
+      }
+      if(u_Clicked == 1.0){
+           v_Color = u_tempColor;
+      }
+    }
+</script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+    #ifdef GL_ES
+    precision mediump float;
+    #endif
+    varying vec3 v_TextCord;
+    varying vec4 v_Color;
+    varying float v_Clicked;
+    varying vec4 v_tempColor;
+    uniform sampler2D u_Sampler;
+    void main() {
+        if(v_Clicked == 1.0){
+          gl_FragColor = v_tempColor;
+        }
+        else if(v_TextCord.z==1.0){
+          gl_FragColor = texture2D(u_Sampler, v_TextCord.xy) * 0.7 + v_Color * 0.3;
+        }else{
+          gl_FragColor = v_Color;
+        }
+    }
+</script>
+
+
+<div class="modal fade" id="first">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">房间里面有点灰暗，可能断电了</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="useMouse">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">这是一个鼠标，你该如何使用它呢</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="box">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">你得到了一个密码盒子</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="paper">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">你得到了一个纸片</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="outSuccess">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">恭喜您，走出了房间</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="paperUse" style="padding: 100px;">
+    <div class="modal-dialog">
+        <div class="modal-content2" style="height: 600px;">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">你已经获得到的纸片如下(单击一次开始拖动)：</h4>
+            </div>
+            <div class="modal-content2">
+                <img src="images/code1.png" class="modal-code" id="modal-code1">
+                <img src="images/code2.png" class="modal-code" id="modal-code2">
+                <img src="images/code3.png" class="modal-code" id="modal-code3">
+                <img src="images/code4.png" class="modal-code" id="modal-code4">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="openbox">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">这个密码盒子需要四位数密码</h4>
+            </div>
+            <div class="modal-body" style="display: flex;width:426px;">
+                <div class="codeInputGroup">
+                    <input type="text" id="password1" to="password2" class="codeInput" oninput="tonext('password2')"/>
+                    <input type="text" id="password2" to="password3" class="codeInput" oninput="tonext('password3')"/>
+                    <input type="text" id="password3" to="password4" class="codeInput" oninput="tonext('password4')"/>
+                    <input type="text" id="password4" class="codeInput" oninput="vertify()"/>
+                    <p class="wrongPass" id="wrongPass" style="display: none">您输入的密码错误</p>
+                    <p class="rightPass" id="rightPass" style="display: none">您打开了箱子，得到了一个鼠标</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="./lib/webgl-utils.js"></script>
+<script src="./lib/webgl-debug.js"></script>
+<script src="./lib/cuon-utils.js"></script>
+<script src="./lib/cuon-matrix.js"></script>
+<script src="./new_readObj.js"></script>
+<script src="./computerRoom.js"></script>
+
+</body>
+</html>

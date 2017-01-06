@@ -1,0 +1,169 @@
+.control{
+    position: fixed;
+    width: 300px;
+    height:100px;
+    bottom:30px;
+    left:20px;
+}
+
+.control img{
+    width: 60px;
+    height:60px;
+    opacity: 0.5;
+    position: fixed;
+    /*box-shadow:0 0 3px 1px rgba(0,198,255,0.7);*/
+}
+
+.control img:hover{
+    opacity: 1;
+}
+
+.control #toleft{
+    bottom: 25px;
+    left: 20px;
+}
+
+.control #toahead{
+    bottom: 95px;
+    left:90px;
+}
+
+.control #tobackward{
+    bottom: 25px;
+    left: 90px;
+}
+
+.control #toright{
+    bottom: 25px;
+    left: 160px;
+}
+
+
+
+.goods{
+    position: fixed;
+    right:20px;
+    bottom: 250px;
+    width: 180px;
+}
+
+.goods .certain_good{
+    float: right;
+    background-color: rgba(0,0,33,0.1);
+    width: 100px;
+    height:100px;
+    border-radius: 10px;
+    box-shadow:0 0 5px 1px rgba(0,198,255,0.7);
+    margin-bottom: 10px;
+    /*box-shadow: 1px 1px 1px 2px rgba(255,255,255,0.3);*/
+    /*outline:1px solid rgba(255,255,255,0.9);*/
+}
+
+.goods .certain_good:hover,.anouncement:hover{
+    background-color: rgba(0,0,33,0.2);
+    margin-bottom: 10px;
+}
+
+.certain_good img{
+    width: 80px;
+    height: 80px;
+    margin: 10px;
+}
+
+.anouncement{
+    position: fixed;
+    right:20px;
+    bottom: 30px;
+    width: 400px;
+    height:200px;
+    box-shadow:0 0 5px 1px rgba(0,198,255,0.7);
+    background-color: rgba(0,0,33,0.1);
+}
+
+.anounc_title{
+    margin:5px 15px 10px ;
+    color:#21b4ba
+}
+.anounc_content{
+    margin: 5px 15px 10px ;
+    height: 160px;
+    color:rgba(255,255,255,0.8);
+}
+
+.anounc_title span{
+    margin: 5px;
+    font-size: 15px;
+    position: relative;
+    top:2px;
+}
+
+.modal{
+    padding-top: 300px;
+}
+
+.modal-content{
+    background-color: rgba(255,255,255,0);
+}
+
+.modal-title{
+    color:rgba(255,255,255,0.7);
+    border-bottom:none;
+    text-align: center;
+}
+.modal-header{
+    border-bottom:none;
+}
+
+.codeInput{
+    border-color:#21b4ba;
+    color:#21b4ba;
+    border-width:3px;
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 2px;
+    text-align: center;
+    margin-right: 10px;
+    outline: none;
+    background-color: rgba(0,0,0,0);
+}
+
+.codeInputGroup{
+    width:200px;
+    display: block;
+    margin-left: auto;
+}
+
+.wrongPass{
+    color:rgba(255,0,0,0.8);
+    font-size: 16px;
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.modal-content2{
+    height: 400px;
+    width: 700px;
+}
+
+.modal-content2 img{
+    /*width: 120px;*/
+    /*height: 120px;*/
+}
+
+.rightPass{
+    color:rgba(21,255,250,0.8);
+    font-size: 16px;
+    margin-top: 10px;
+    margin-left: -26px;
+}
+
+.modal-code{
+    position: relative;
+}
+
+#modal-code1{ top:90px;left: 0;}
+#modal-code2{ top:0;left:0;}
+#modal-code3{ top:0;left:90px; }
+#modal-code4{ top:90px;left:90px; }

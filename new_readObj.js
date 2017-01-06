@@ -234,8 +234,8 @@ function parseFace(sp, materialName, vertices, textureVt, Normals, reverse) {
         var word = sp.getWord();
         if(!word||!word.replace( /^\s+|\s+$/g, "" )) break;
         var subWords;
-        if(word.indexOf("//">-1)) subWords = word.split('//');
-        else subWords = word.split('/');
+        // if(word.indexOf("//">-1)) subWords = word.split('//');
+        subWords = word.split('/');
 
         if(subWords.length >= 1){
             var vi = parseInt(subWords[0])<0?vertices.length+parseInt(subWords[0]):parseInt(subWords[0])- 1;
@@ -243,8 +243,10 @@ function parseFace(sp, materialName, vertices, textureVt, Normals, reverse) {
             face.vIndices.push(vi);
         }
         if(subWords.length >= 2){
-            var ti = parseInt(subWords[1])<0?textureVt.length+parseInt(subWords[1]):parseInt(subWords[1])- 1;
-            face.tIndices.push(ti);
+            if(subWords[1]) {
+                var ti = parseInt(subWords[1]) < 0 ? textureVt.length + parseInt(subWords[1]) : parseInt(subWords[1]) - 1;
+                face.tIndices.push(ti);
+            }
         }else{
             // face.tIndices.push(undefined);
         }
@@ -278,7 +280,12 @@ function parseFace(sp, materialName, vertices, textureVt, Normals, reverse) {
 
     //这个其实没有什么用，留着以后删除吧
     var t1,t2,t3;
+
     if(face.tIndices.length>=3) {
+        if(!textureVt[face.tIndices[0]]){
+            console.log("textureVt.length:",textureVt.length,"face.tIndices[0]",face.tIndices,"face.tIndices.length",face.tIndices.length);
+            throw("hhhh");
+        }
         t1 = [
             textureVt[face.tIndices[0]].x,
             textureVt[face.tIndices[0]].y];
@@ -298,7 +305,7 @@ function parseFace(sp, materialName, vertices, textureVt, Normals, reverse) {
                 vertices[face.vIndices[3]].x,
                 vertices[face.vIndices[3]].y,
                 vertices[face.vIndices[3]].z ];
-                normal = calcNormal(v1, v2, v3);
+            normal = calcNormal(v1, v2, v3);
         }
         if(normal == null){         // 法線が求められなかったのでY軸方向の法線とする
             normal = [0.0, 1.0, 0.0];
@@ -428,8 +435,14 @@ function OBJDocparser (fileString, modelObject, mtlArray, objArray, scale, rever
                         }
                     }
                 };
+                request.onerror=function(error){
+                    console.log(error);
+                };
+                request.ontimeout=function(error){
+                    console.log("timeout",error);
+                };
                 request.open('GET', path, true);  // Create a request to acquire the file
-                request.send();                   // Send the request
+                request.send();
                 continue; // Go to the next line
             case 'o':
             case 'g':   // Read Object name
@@ -467,13 +480,13 @@ function OBJDocparser (fileString, modelObject, mtlArray, objArray, scale, rever
 }
 
 //注意，不同obj文件读取是异步的，异步就不能保证文件的顺序，
-    //保证异步,这个应该写在外面？
-    // modelObject.fileName.push(objDoc.fileName);
-    // modelObject.mtls.push(objDoc.mtls);
-    // modelObject.objects.push(objDoc.objects);
-    // modelObject.vertices.push(objDoc.vertices);
-    // modelObject.normals.push(objDoc.normals);
-    // modelObject.textureVt.push(objDoc.textureVt);
+//保证异步,这个应该写在外面？
+// modelObject.fileName.push(objDoc.fileName);
+// modelObject.mtls.push(objDoc.mtls);
+// modelObject.objects.push(objDoc.objects);
+// modelObject.vertices.push(objDoc.vertices);
+// modelObject.normals.push(objDoc.normals);
+// modelObject.textureVt.push(objDoc.textureVt);
 
 //------------------------------------------------------------------------------
 // Common function
@@ -499,14 +512,18 @@ function calcNormal(p0, p1, p2) {
     return v.elements;
 }
 
+// var ss=0;
+
+//更改了两次这个函数找到两bug
 function findColor(target,name){
     for(var i = 0; i < target.mtls.length; i++){
         for(var j = 0; j < target.mtls[i].materials.length; j++){
-            // console.log("compare...")
-            // console.log(this.mtls[i].materials[j].name,name,this.mtls[i].materials[j].color);
-            // console.log(this.mtls[i].materials[j].name.toLowerCase().replace( /^\s+|\s+$/g, "" ) == "material",typeof this.mtls[i].materials[j].name.toLowerCase(),"material");
+            // ss++;
+            // if(ss<10)console.log("compare...")
+            // if(ss<10)console.log(target.mtls[i].materials[j].name,name,target.mtls[i].materials[j].color);
+            // if(ss<10)console.log(target.mtls[i].materials[j].name.toLowerCase().replace( /^\s+|\s+$/g, "" ) == name,typeof target.mtls[i].materials[j].name.toLowerCase(),"material");
             // console.log("......");
-            if(target.mtls[i].materials[j].name.replace( /^\s+|\s+$/g, "" ) == name){
+            if(target.mtls[i].materials[j].name.replace( /^\s+|\s+$/g, "" ) == name.replace( /^\s+|\s+$/g, "" )){
                 return(target.mtls[i].materials[j].color)
             }
         }
