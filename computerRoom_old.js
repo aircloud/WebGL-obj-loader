@@ -490,8 +490,8 @@ function initEventHandlers(canvas, currentAngle, gl, viewProjMatrix, model) {
                 forwardInterval=setInterval(function(){
 //                        console.log("forward");
                     configs.lookConfig[0]+=Math.sin(currentX/circleX)*speed;
-                    configs.lookConfig[3]+=Math.sin(currentX/circleX)*speed;
                     configs.lookConfig[2]+=Math.cos(currentX/circleX)*speed;
+                    configs.lookConfig[3]+=Math.sin(currentX/circleX)*speed;
                     configs.lookConfig[5]+=Math.cos(currentX/circleX)*speed;
                     viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
                     viewProjMatrix.lookAt(...(configs.lookConfig));
@@ -504,8 +504,8 @@ function initEventHandlers(canvas, currentAngle, gl, viewProjMatrix, model) {
                 tobackward.style.opacity="1";
                 backInterval=setInterval(function(){
                     configs.lookConfig[0]-=Math.sin(currentX/circleX)*speed;
-                    configs.lookConfig[3]-=Math.sin(currentX/circleX)*speed;
                     configs.lookConfig[2]-=Math.cos(currentX/circleX)*speed;
+                    configs.lookConfig[3]-=Math.sin(currentX/circleX)*speed;
                     configs.lookConfig[5]-=Math.cos(currentX/circleX)*speed;
                     viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
                     viewProjMatrix.lookAt(...(configs.lookConfig));
@@ -517,8 +517,8 @@ function initEventHandlers(canvas, currentAngle, gl, viewProjMatrix, model) {
                 toleft.style.opacity="1";
                 leftInterval=setInterval(function(){
                     configs.lookConfig[0]+=Math.cos(currentX/circleX)*speed;
-                    configs.lookConfig[3]+=Math.cos(currentX/circleX)*speed;
                     configs.lookConfig[2]-=Math.sin(currentX/circleX)*speed;
+                    configs.lookConfig[3]+=Math.cos(currentX/circleX)*speed;
                     configs.lookConfig[5]-=Math.sin(currentX/circleX)*speed;
                     viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
                     viewProjMatrix.lookAt(...(configs.lookConfig));
@@ -530,8 +530,8 @@ function initEventHandlers(canvas, currentAngle, gl, viewProjMatrix, model) {
                 toright.style.opacity="1";
                 rightInterval=setInterval(function(){
                     configs.lookConfig[0]-=Math.cos(currentX/circleX)*speed;
-                    configs.lookConfig[3]-=Math.cos(currentX/circleX)*speed;
                     configs.lookConfig[2]+=Math.sin(currentX/circleX)*speed;
+                    configs.lookConfig[3]-=Math.cos(currentX/circleX)*speed;
                     configs.lookConfig[5]+=Math.sin(currentX/circleX)*speed;
                     viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
                     viewProjMatrix.lookAt(...(configs.lookConfig));

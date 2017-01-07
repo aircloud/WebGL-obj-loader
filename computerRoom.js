@@ -292,14 +292,14 @@ function main() {
     TextureArray[1]={ifTexture:1.0,TextureUrl:'./textTures/lastics1.jpg',n:0};
     updateDrawInfo(1,[0.0,0.0,0.0, 1,-2.0,-12.3, 1.0,1.0,1.0,  0.5,0.5,0.5,1,0 ,1]);
 
-    //饮水机水桶，透明的部分
+    // 饮水机水桶，透明的部分
     readOBJFile('./models/033_1.obj', modelObject,  mtlArray, objArray, 0.08, false, 12);
     TextureArray[12]={ifTexture:0.0,TextureUrl:'none',n:0};
     updateDrawInfo(12,[0.0,0.0,0.0, 1,-2.0,-12.3, 1.0,1.0,1.0, 0.0,0.26,0.38,0.7,1 ,1]);
-//
+
     //柜子高
     readOBJFile('./models/051.obj', modelObject,  mtlArray, objArray, 0.1, false, 2);
-    TextureArray[2]={ifTexture:0.0,TextureUrl:'./textTures/2048_2.jpg',n:7};
+    TextureArray[2]={ifTexture:0.0,TextureUrl:'./textTures/2048_2.jpg',n:3};
     updateDrawInfo(2,[0.0,-90.0,0.0, 8.9,-2.0,-10.0, 1.0,1.0,1.0,  0.1,0.7235,0.4529,1,0 ,1]);
 
     //柜子矮
@@ -310,7 +310,7 @@ function main() {
     //矮桌子
     readOBJFile('./models/table5.obj', modelObject,  mtlArray, objArray, 0.04, false, 4);
     TextureArray[4]={ifTexture:1.0,TextureUrl:'none',n:3};
-    updateDrawInfo(4,[0.0,-90.0,0.0, -4.5,-2,-2.0, 1.0,1.3,1.0,  0.02,0.88,0.99,1.0,1 ,1]);
+    updateDrawInfo(4,[0.0,-90.0,0.0, -4.5,-2,-2.0, 1.0,1.3,1.0,  0.02,0.88,0.99,0.9,1 ,1]);
 
     //大书桌
     readOBJFile('./models/table4.obj', modelObject,  mtlArray, objArray, 0.0042, false, 5);
@@ -475,62 +475,164 @@ function initEventHandlers(canvas, currentAngle, gl, viewProjMatrix, model) {
         lastY = y;
     };
 
+    function judgePositionX(x,y){
+        console.log("Math.abs(x)",Math.abs(x));
+        if(Math.abs(x)>=7.9)return false;
+
+        return true;
+    }
+    function judgePositionZ(x,z){
+        console.log("Math.abs(z)",Math.abs(z));
+
+        if(Math.abs(z)>=13.9)return false;
+
+        return true;
+    }
+
+    function GoToBack(speed){
+        clearInterval(forwardInterval);
+        clearInterval(backInterval);
+        tobackward.style.opacity="1";
+        backInterval=setInterval(function(){
+            configs.lookConfig[0] -= Math.sin(currentX / circleX) * speed;
+            configs.lookConfig[2] -= Math.cos(currentX / circleX) * speed;
+            configs.lookConfig[3] -= Math.sin(currentX/circleX)*speed;
+            configs.lookConfig[5] -= Math.cos(currentX/circleX)*speed;
+            if(!judgePositionX(configs.lookConfig[0],configs.lookConfig[2])) {
+                configs.lookConfig[0] += Math.sin(currentX / circleX) * speed;
+                configs.lookConfig[3] += Math.sin(currentX/circleX)*speed;
+            }
+            if(!judgePositionZ(configs.lookConfig[0],configs.lookConfig[2])){
+                configs.lookConfig[2] += Math.cos(currentX / circleX) * speed;
+                configs.lookConfig[5] += Math.cos(currentX/circleX)*speed;
+            }
+            viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
+            viewProjMatrix.lookAt(...(configs.lookConfig));
+        },15);
+    }
+
+    function GoForward(speed){
+        clearInterval(forwardInterval);
+        clearInterval(backInterval);
+        toahead.style.opacity="1";
+        forwardInterval=setInterval(function(){
+            configs.lookConfig[0] += Math.sin(currentX / circleX) * speed;
+            configs.lookConfig[2] += Math.cos(currentX / circleX) * speed;
+            configs.lookConfig[3] += Math.sin(currentX/circleX)*speed;
+            configs.lookConfig[5] += Math.cos(currentX/circleX)*speed;
+            if(!judgePositionX(configs.lookConfig[0],configs.lookConfig[2])) {
+                configs.lookConfig[0] -= Math.sin(currentX / circleX) * speed;
+                configs.lookConfig[3] -= Math.sin(currentX/circleX)*speed;
+            }
+            if(!judgePositionZ(configs.lookConfig[0],configs.lookConfig[2])){
+                configs.lookConfig[2] -= Math.cos(currentX / circleX) * speed;
+                configs.lookConfig[5] -= Math.cos(currentX/circleX)*speed;
+            }
+            viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
+            viewProjMatrix.lookAt(...(configs.lookConfig));
+        },15);
+    }
+
+    function GoLeft(speed){
+        clearInterval(rightInterval);
+        clearInterval(leftInterval);
+        toleft.style.opacity="1";
+        leftInterval=setInterval(function(){
+            configs.lookConfig[0]+=Math.cos(currentX/circleX)*speed;
+            configs.lookConfig[2]-=Math.sin(currentX/circleX)*speed;
+            configs.lookConfig[3]+=Math.cos(currentX/circleX)*speed;
+            configs.lookConfig[5]-=Math.sin(currentX/circleX)*speed;
+            if(!judgePositionX(configs.lookConfig[0],configs.lookConfig[2])) {
+                configs.lookConfig[0]-=Math.cos(currentX/circleX)*speed;
+                configs.lookConfig[3]-=Math.cos(currentX/circleX)*speed;
+
+                configs.lookConfig[2]+=Math.sin(currentX/circleX)*speed;
+                configs.lookConfig[5]+=Math.sin(currentX/circleX)*speed;
+            }
+            viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
+            viewProjMatrix.lookAt(...(configs.lookConfig));
+        },15);
+    }
+
+    function GoRight(speed){
+        clearInterval(rightInterval);
+        clearInterval(leftInterval);
+        toright.style.opacity="1";
+        rightInterval=setInterval(function(){
+            configs.lookConfig[0]-=Math.cos(currentX/circleX)*speed;
+            configs.lookConfig[2]+=Math.sin(currentX/circleX)*speed;
+            configs.lookConfig[3]-=Math.cos(currentX/circleX)*speed;
+            configs.lookConfig[5]+=Math.sin(currentX/circleX)*speed;
+            if(!judgePositionX(configs.lookConfig[0],configs.lookConfig[2])) {
+                configs.lookConfig[0]+=Math.cos(currentX/circleX)*speed;
+                configs.lookConfig[3]+=Math.cos(currentX/circleX)*speed;
+            }
+            if(!judgePositionZ(configs.lookConfig[0],configs.lookConfig[2])){
+                configs.lookConfig[2]-=Math.sin(currentX/circleX)*speed;
+                configs.lookConfig[5]-=Math.sin(currentX/circleX)*speed;
+            }
+            viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
+            viewProjMatrix.lookAt(...(configs.lookConfig));
+        },15);
+    }
+
+    var speed=0.5;
+
+    function addEvents(events, eF) {
+        if (this != window)
+            for (let i = 0; i < events.length; i++) {
+                this.addEventListener(events[i], eF);
+            }
+    }
+
+    toleft.onmousedown=function(e){
+        GoLeft(speed);
+    };
+
+    addEvents.call(toleft,["mouseout","mouseup"],function(e){
+        clearInterval(leftInterval);
+        toleft.style.opacity="0.5";
+    });
+
+    toahead.onmousedown=function(e){
+        GoForward(speed);
+    };
+
+    addEvents.call(toahead,["mouseout","mouseup"],function(e){
+        clearInterval(forwardInterval);
+        toahead.style.opacity="0.5";
+    });
+
+    toright.onmousedown=function(e){
+        GoRight(speed);
+    };
+
+    addEvents.call(toright,["mouseout","mouseup"],function(e){
+        clearInterval(rightInterval);
+        toright.style.opacity="0.5";
+    });
+
+    tobackward.onmousedown=function(e){
+        GoToBack(speed);
+    };
+    addEvents.call(tobackward,["mouseout","mouseup"],function(e){
+        clearInterval(backInterval);
+        tobackward.style.opacity="0.5";
+    });
+
     window.onkeydown=function(e){
-        var speed=0.5;
         switch (e.keyCode){
             case 87:
-                clearInterval(forwardInterval);
-                clearInterval(backInterval);
-                toahead.style.opacity="1";
-                forwardInterval=setInterval(function(){
-//                        console.log("forward");
-                    configs.lookConfig[0]+=Math.sin(currentX/circleX)*speed;
-                    configs.lookConfig[3]+=Math.sin(currentX/circleX)*speed;
-                    configs.lookConfig[2]+=Math.cos(currentX/circleX)*speed;
-                    configs.lookConfig[5]+=Math.cos(currentX/circleX)*speed;
-                    viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
-                    viewProjMatrix.lookAt(...(configs.lookConfig));
-                },30);
-                //                    console.log("forward");
+                GoForward(speed);
                 break;
             case 83:
-                clearInterval(forwardInterval);
-                clearInterval(backInterval);
-                tobackward.style.opacity="1";
-                backInterval=setInterval(function(){
-                    configs.lookConfig[0]-=Math.sin(currentX/circleX)*speed;
-                    configs.lookConfig[3]-=Math.sin(currentX/circleX)*speed;
-                    configs.lookConfig[2]-=Math.cos(currentX/circleX)*speed;
-                    configs.lookConfig[5]-=Math.cos(currentX/circleX)*speed;
-                    viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
-                    viewProjMatrix.lookAt(...(configs.lookConfig));
-                },30);
+                GoToBack(speed);
                 break;
             case 65:
-                clearInterval(rightInterval);
-                clearInterval(leftInterval);
-                toleft.style.opacity="1";
-                leftInterval=setInterval(function(){
-                    configs.lookConfig[0]+=Math.cos(currentX/circleX)*speed;
-                    configs.lookConfig[3]+=Math.cos(currentX/circleX)*speed;
-                    configs.lookConfig[2]-=Math.sin(currentX/circleX)*speed;
-                    configs.lookConfig[5]-=Math.sin(currentX/circleX)*speed;
-                    viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
-                    viewProjMatrix.lookAt(...(configs.lookConfig));
-                },30);
+                GoLeft(speed);
                 break;
             case 68:
-                clearInterval(rightInterval);
-                clearInterval(leftInterval);
-                toright.style.opacity="1";
-                rightInterval=setInterval(function(){
-                    configs.lookConfig[0]-=Math.cos(currentX/circleX)*speed;
-                    configs.lookConfig[3]-=Math.cos(currentX/circleX)*speed;
-                    configs.lookConfig[2]+=Math.sin(currentX/circleX)*speed;
-                    configs.lookConfig[5]+=Math.sin(currentX/circleX)*speed;
-                    viewProjMatrix.setPerspective(30.0, canvas.width/canvas.height, 1.0, 5000.0);
-                    viewProjMatrix.lookAt(...(configs.lookConfig));
-                },30);
+                GoRight(speed);
                 break;
         }
     };
@@ -663,6 +765,19 @@ function draw(gl, program, angle, viewProjMatrix, model, index, TextureArray, if
         console.log("no object!!!");
         return;
     }
+
+    //先计算是不是要绘制
+
+    var positionToObject = [modelDrawInfo[index].offsetX-configs.lookConfig[0],modelDrawInfo[index].offsetY-configs.lookConfig[1],modelDrawInfo[index].offsetZ-configs.lookConfig[2]];
+    var positionToPoint = [configs.lookConfig[3]-configs.lookConfig[0],configs.lookConfig[4]-configs.lookConfig[1],configs.lookConfig[5]-configs.lookConfig[2]];
+
+    var multiresult=0;
+
+    for(var jj=0;jj<3;jj++){
+        multiresult+=positionToObject[jj]*positionToPoint[jj];
+    }
+
+    if(multiresult<50 && index!=0)return;
 
     //设置纹理
     if(TextureArray[index].ifTexture==1.0){
@@ -823,7 +938,7 @@ function nextstep(id){
                 addSystemMessage("你用鼠标点亮了屏幕");
             }
             else if(!step.mail && step.screenLight) {
-                TextureArray[13].n = 7;
+                TextureArray[13].n = 3;
                 addSystemMessage("你用鼠标操作它发送了一封邮件");
                 step.mail=true;
             }
