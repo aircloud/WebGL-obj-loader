@@ -12,10 +12,12 @@ var toright = document.getElementById('toright');
 
 /***************全局变量****************/
 
+const SOCKET_URL = "127.0.0.1:3000";
+
 const MAX = 65532;
 const MAX_OBJECT = 24;
-//每一个的临时颜色算法    (Math.ceil(255/MAX_OBJECT))*index
-//返回index  color/(Math.ceil(255/MAX_OBJECT));
+//每一个的临时颜色算法:(Math.ceil(255/MAX_OBJECT))*index
+//返回index:color/(Math.ceil(255/MAX_OBJECT));
 
 const GLOBAL_SCALE = 0.01;
 
@@ -46,6 +48,10 @@ for(var ii=0; ii<MAX_OBJECT; ii++){
     configs.tempColorList[ii*3+1] = (Math.floor(255/MAX_OBJECT)/255).toFixed(2) * (ii+1);
     configs.tempColorList[ii*3+2] = (Math.floor(255/MAX_OBJECT)/255).toFixed(2) * (ii+1);
 }
+var fogColor = new Float32Array([0.2, 0.3, 0.4]);
+var fogDist = new Float32Array([0.5, 19]);
+var If_Fog=0.0;
+var mtlOK=0;
 
 /***************全局函数****************/
 
@@ -252,6 +258,9 @@ function main() {
     program.u_ifCertainColor = gl.getUniformLocation(program, 'u_ifCertainColor');
     program.u_ifCertainColor = gl.getUniformLocation(program, 'u_ifCertainColor');
     program.u_certainColor = gl.getUniformLocation(program, 'u_certainColor');
+    program.u_FogColor = gl.getUniformLocation(program, 'u_FogColor');
+    program.u_FogDist = gl.getUniformLocation(program, 'u_FogDist');
+    program.u_If_Fog = gl.getUniformLocation(program, 'u_If_Fog');
 
     if (program.a_Position < 0 ||  program.a_Normal < 0 || program.a_Color < 0 || program.a_TextCord <0 ||
         !program.u_MvpMatrix || !program.u_NormalMatrix) {
@@ -413,7 +422,7 @@ function main() {
 
 };
 
-var useFul=[13,14,15,16,17,18,3,19];
+var useFul=[13,14,15,16,17,18,3,19,4];
 
 //中心控制器
 function initEventHandlers(canvas, currentAngle, gl, viewProjMatrix, model) {
@@ -716,6 +725,7 @@ function initTextures(gl,thisTexture) {
     }
     // Register the event handler to be called on loading an image
     image.onload = function(){
+        mtlOK++;
         console.log("image onload");
         loadTexture(gl, thisTexture.n, texture, u_Sampler, image);
     };
@@ -753,6 +763,9 @@ function initDraw(gl){
     gl.uniform3f(gl.program.u_lightColor,configs.lightColor[0],configs.lightColor[1],configs.lightColor[2]);
     gl.uniform3f(gl.program.eye_Position,configs.lookConfig[0],configs.lookConfig[1],configs.lookConfig[2]);
     gl.uniform1f(gl.program.u_Clicked,0.0);
+    gl.uniform3fv(gl.program.u_FogColor, fogColor);
+    gl.uniform2fv(gl.program.u_FogDist, fogDist);
+    gl.uniform1f(gl.program.u_If_Fog,If_Fog);
 }
 
 // 描画関数
@@ -793,12 +806,6 @@ function draw(gl, program, angle, viewProjMatrix, model, index, TextureArray, if
     }
 
     gl.uniform4f(gl.program.u_tempColor,configs.tempColorList[index*3],configs.tempColorList[index*3+1],configs.tempColorList[index*3+2],1);
-//        if(if_click_test){
-//            console.log(configs.tempColorList[index*3],configs.tempColorList[index*3+1],configs.tempColorList[index*3+2],1,index);
-//        }
-    //console.log(modelObject,"modelObject");
-
-    //这个时候先判断颜色是不是要用指定的颜色
 
     gl.uniform4f(gl.program.u_certainColor,modelDrawInfo[index].r,modelDrawInfo[index].g,modelDrawInfo[index].b,modelDrawInfo[index].a);
     gl.uniform1f(gl.program.u_ifCertainColor,modelDrawInfo[index].u_ifCertainColor);
@@ -810,9 +817,7 @@ function draw(gl, program, angle, viewProjMatrix, model, index, TextureArray, if
 
         g_modelMatrix.setTranslate(modelDrawInfo[index].offsetX,modelDrawInfo[index].offsetY,modelDrawInfo[index].offsetZ);
         g_modelMatrix.rotate(modelDrawInfo[index].rotateX, 1.0, 0.0, 0.0); // 设置模型旋转矩阵
-//            g_modelMatrix.rotate(angle[0], 1.0, 0.0, 0.0); // 设置模型旋转矩阵
         g_modelMatrix.rotate(modelDrawInfo[index].rotateY, 0.0, 1.0, 0.0);
-//            g_modelMatrix.rotate(angle[1], 0.0, 1.0, 0.0);
         g_modelMatrix.rotate(modelDrawInfo[index].rotateZ, 0.0, 0.0, 1.0);
         g_modelMatrix.scale(modelDrawInfo[index].scaleX,modelDrawInfo[index].scaleY,modelDrawInfo[index].scaleZ);
 
@@ -825,13 +830,7 @@ function draw(gl, program, angle, viewProjMatrix, model, index, TextureArray, if
         gl.uniformMatrix4fv(program.u_NormalMatrix, false, g_normalMatrix.elements);
         gl.uniformMatrix4fv(program.u_ModelMatrix, false, g_modelMatrix.elements);
 
-        // Calculate the model view project matrix and pass it to u_MvpMatrix
-        // g_mvpMatrix.multiply(g_modelMatrix);
-        //g_mvpMatrix.setOrtho(-100,100,-100,100,-50,50);
         g_mvpMatrix.multiply(g_modelMatrix);
-        //g_mvpMatrix.rotate(angle[0], 1.0, 0.0, 0.0);
-        //g_mvpMatrix.rotate(angle[1], 0.0, 1.0, 0.0);
-        //g_mvpMatrix.translate(-200.0,0.0,0.0);
         gl.uniformMatrix4fv(program.u_MvpMatrix, false, g_mvpMatrix.elements);
 
         // Draw
@@ -867,286 +866,28 @@ function checkPixel(gl, viewProjMatrix, model, x, y){
 
 }
 
-//以下是测试代码，正式使用的时候应该删除
+//以下是加载进度代码
 
-var changePosition = document.getElementsByClassName("changePosition");
-//    console.log("changePosition",changePosition);
-Array.prototype.forEach.call(changePosition,function(node){
-    node.addEventListener("click",function(e){
-        console.log("begin to change the observe position",e.target.attributes["to"].value.charAt(8));
-        switch (e.target.attributes["to"].value){
-            case "lightP1":
-            case "lightP2":
-            case "lightP3":
-                if(e.target.childNodes.item(0).nodeValue=="+"){
-                    configs.lightP[parseInt(e.target.attributes["to"].value.charAt(6))-1]=parseFloat((parseFloat(document.getElementById(e.target.attributes["to"].value).innerHTML)+50.0).toFixed(2));
-                    document.getElementById(e.target.attributes["to"].value).innerHTML=configs.lightP[parseInt(e.target.attributes["to"].value.charAt(6))-1].toString();
-                }
-                else{
-                    configs.lightP[parseInt(e.target.attributes["to"].value.charAt(6))-1]=parseFloat((parseFloat(document.getElementById(e.target.attributes["to"].value).innerHTML)-50.0).toFixed(2));
-                    document.getElementById(e.target.attributes["to"].value).innerHTML=configs.lightP[parseInt(e.target.attributes["to"].value.charAt(6))-1].toString();
-                }
-                break;
+var MTLNUMBER=5;
+var OBJNUMBER=17;
 
-        }
-        console.log(configs.lightDir,"configs");
-    });
-});
 
-//以下是游戏业务代码
+var processing = setInterval(function(){
+    var objOK=0;
 
-var step={
-    box:false,
-    paper1:false,
-    paper2:false,
-    paper3:false,
-    paper4:false,
-    mouse:false,
-    electricity:true,
-    screenLight:false,
-    mail:false,
-    chest:false,
-    ok:false,
-    out:false,
-};
-
-var messageNumber=0;
-
-function addSystemMessage(str){
-    console.log(getById("anounContent").childNodes);
-    if(messageNumber>=5){
-        getById("anounContent").removeChild(getById("anounContent").childNodes.item(3))
-    }
-    var tempP = document.createElement("P");
-    tempP.innerHTML=str;
-    getById("anounContent").append(tempP);
-    messageNumber++;
-}
-
-var clockNumber = 0;
-
-function nextstep(id){
-
-    switch(id){
-        case 13:
-            console.log(13);
-            if(!step.electricity)addSystemMessage("现在电脑并没有接通电源");
-            else if(!step.mouse)addSystemMessage("你好像需要一个鼠标来控制它");
-            else if(!step.screenLight){
-                TextureArray[13].ifTexture=1.0;
-                step.screenLight=true;
-                addSystemMessage("你用鼠标点亮了屏幕");
-            }
-            else if(!step.mail && step.screenLight) {
-                TextureArray[13].n = 3;
-                addSystemMessage("你用鼠标操作它发送了一封邮件");
-                step.mail=true;
-            }
-            break;
-        case 14:
-            step.box=true;
-            modelDrawInfo[14].ifShow=0;
-            addSystemMessage("你发现了一个盒子");
-            getById("codebox").style.display="block";
-            break;
-
-        case 15:
-            step.paper1=true;
-            modelDrawInfo[15].ifShow=0;
-            addSystemMessage("你在椅子上发现了一张残缺的图片");
-            getById("code1").style.display="block";
-            break;
-        case 16:
-            step.paper2=true;
-            modelDrawInfo[16].ifShow=0;
-            addSystemMessage("你在饮水机上发现了一张残缺的图片");
-            getById("code2").style.display="block";
-            break;
-        case 17:
-            step.paper3=true;
-            modelDrawInfo[17].ifShow=0;
-            addSystemMessage("你在柜子里发现了一张残缺的图片");
-            getById("code3").style.display="block";
-            break;
-        case 18:
-            step.paper4=true;
-            modelDrawInfo[18].ifShow=0;
-            addSystemMessage("你从抽屉里面发现了一张残缺的图片");
-            getById("code4").style.display="block";
-            break;
-        case 3:
-            if(step.mail) {
-                clockNumber++;
-                console.log("clockNumber", clockNumber);
-                if (clockNumber > 9) {
-                    console.log("step.ok,clockNumber", clockNumber);
-                    step.ok = true;
-                    add3OffsetZ();
-                }
-                setTimeout(function () {
-                    clockNumber = 0;
-                }, 3000);
-            }
-            break;
-        case 19:
-            if(step.out){
-                addSystemMessage("你走出了房间");
-                $("#outSuccess").modal({});
-            }
-            break;
-        default:
-            break;
+    for(ii=0;ii<22;ii++){
+        if(!!objArray[ii])objOK++;
     }
 
-}
+    var percentage = ((objOK+mtlOK)/(MTLNUMBER+OBJNUMBER)*100).toFixed(2);
+    getById("percentage").innerHTML="加载中..."+percentage+"%";
 
-function add3OffsetZ (){
-    if(step.ok && !step.out) {
-        modelDrawInfo[3].offsetZ += 0.5;
-        if (modelDrawInfo[3].offsetZ < -2.9)
-            setTimeout(function () {
-                add3OffsetZ()
-            }, 200);
-        else step.out=true;
+    if((objOK+mtlOK)>(MTLNUMBER+OBJNUMBER-1)){
+        getById("processing").style.display="none";
+        clearInterval(processing);
     }
-}
-
-function openbox(){
-    getById("password1").value="";
-    getById("password2").value="";
-    getById("password3").value="";
-    getById("password4").value="";
-    getById("wrongPass").style.display="none";
-    getById("rightPass").style.display="none";
-    console.log("try to open box...");
-    $("#openbox").modal({});
-}
-
-function tonext(value){
-    document.getElementById(value).focus();
-}
+},10);
 
 function getById(value){
     return document.getElementById(value);
 }
-
-function vertify(){
-    if(getById("password1").value+getById("password2").value+getById("password3").value+getById("password4").value!="6427"){
-        getById("wrongPass").style.display="block";
-    }
-    else{
-        getById("rightPass").style.display="block";
-        getById("mouse").style.display="block";
-        getById("codebox").style.display="none";
-        step.mouse=true;
-    }
-}
-
-function useMouse(){
-    $("#useMouse").modal({});
-}
-
-function showPaperUse(){
-    $("#paperUse").modal({});
-    if(!step.paper1)getById('modal-code1').style.display="none";
-    if(!step.paper2)getById('modal-code2').style.display="none";
-    if(!step.paper3)getById('modal-code3').style.display="none";
-    if(!step.paper4)getById('modal-code4').style.display="none";
-
-}
-
-getById("modal-code1").style.left=0+"px";
-getById("modal-code1").style.top=90+"px";
-var code_dragging_1 = false;         // Dragging or not
-var code_lastX_1 = -1, code_lastY_1 = -1;   // Last position of the mouse
-getById("modal-code1").onclick=function(e){
-    if(code_dragging_1)
-        code_dragging_1=false;
-    else {
-        code_dragging_1=true;
-        code_lastX_1=e.clientX;
-        code_lastY_1=e.clientY;
-    }
-};
-getById("modal-code1").onmousemove=function(e){
-    if(code_dragging_1) {
-        console.log(parseInt(getById("modal-code1").style.left) + e.clientX - code_lastX_1);
-        getById("modal-code1").style.left = (parseInt(getById("modal-code1").style.left) + e.clientX - code_lastX_1) + "px";
-        getById("modal-code1").style.top = (parseInt(getById("modal-code1").style.top) + e.clientY - code_lastY_1) + "px";
-        code_lastX_1 = e.clientX;
-        code_lastY_1 = e.clientY;
-    }
-};
-
-getById("modal-code2").style.left=0+"px";
-getById("modal-code2").style.top=0+"px";
-var code_dragging_2 = false;         // Dragging or not
-var code_lastX_2 = -2, code_lastY_2 = -2;   // Last position of the mouse
-getById("modal-code2").onclick=function(e){
-    if(code_dragging_2)
-        code_dragging_2=false;
-    else {
-        code_dragging_2=true;
-        code_lastX_2=e.clientX;
-        code_lastY_2=e.clientY;
-    }
-};
-getById("modal-code2").onmousemove=function(e){
-    if(code_dragging_2) {
-        console.log(parseInt(getById("modal-code2").style.left) + e.clientX - code_lastX_2);
-        getById("modal-code2").style.left = (parseInt(getById("modal-code2").style.left) + e.clientX - code_lastX_2) + "px";
-        getById("modal-code2").style.top = (parseInt(getById("modal-code2").style.top) + e.clientY - code_lastY_2) + "px";
-        code_lastX_2 = e.clientX;
-        code_lastY_2 = e.clientY;
-    }
-};
-
-getById("modal-code3").style.left=90+"px";
-getById("modal-code3").style.top=0+"px";
-var code_dragging_3 = false;         // Dragging or not
-var code_lastX_3 = -3, code_lastY_3 = -3;   // Last position of the mouse
-getById("modal-code3").onclick=function(e){
-    if(code_dragging_3)
-        code_dragging_3=false;
-    else {
-        code_dragging_3=true;
-        code_lastX_3=e.clientX;
-        code_lastY_3=e.clientY;
-    }
-};
-getById("modal-code3").onmousemove=function(e){
-    if(code_dragging_3) {
-        console.log(parseInt(getById("modal-code3").style.left) + e.clientX - code_lastX_3);
-        getById("modal-code3").style.left = (parseInt(getById("modal-code3").style.left) + e.clientX - code_lastX_3) + "px";
-        getById("modal-code3").style.top = (parseInt(getById("modal-code3").style.top) + e.clientY - code_lastY_3) + "px";
-        code_lastX_3 = e.clientX;
-        code_lastY_3 = e.clientY;
-    }
-};
-
-getById("modal-code4").style.left=90+"px";
-getById("modal-code4").style.top=90+"px";
-var code_dragging_4 = false;         // Dragging or not
-var code_lastX_4 = -4, code_lastY_4 = -4;   // Last position of the mouse
-getById("modal-code4").onclick=function(e){
-    if(code_dragging_4)
-        code_dragging_4=false;
-    else {
-        code_dragging_4=true;
-        code_lastX_4=e.clientX;
-        code_lastY_4=e.clientY;
-    }
-};
-getById("modal-code4").onmousemove=function(e){
-    if(code_dragging_4) {
-        console.log(parseInt(getById("modal-code4").style.left) + e.clientX - code_lastX_4);
-        getById("modal-code4").style.left = (parseInt(getById("modal-code4").style.left) + e.clientX - code_lastX_4) + "px";
-        getById("modal-code4").style.top = (parseInt(getById("modal-code4").style.top) + e.clientY - code_lastY_4) + "px";
-        code_lastX_4 = e.clientX;
-        code_lastY_4 = e.clientY;
-    }
-};
-
-//    setTimeout(function(){
-//        $("#first").modal({});
-//    },4000);
