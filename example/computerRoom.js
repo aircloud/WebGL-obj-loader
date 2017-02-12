@@ -60,24 +60,29 @@ function updateDrawInfo(index,someDrawInfo){
     if(!modelDrawInfo[index])
         modelDrawInfo[index]={};
 
+    //旋转参数
     modelDrawInfo[index].rotateX=someDrawInfo[0];
     modelDrawInfo[index].rotateY=someDrawInfo[1];
     modelDrawInfo[index].rotateZ=someDrawInfo[2];
 
+    //位置参数
     modelDrawInfo[index].offsetX=someDrawInfo[3];
     modelDrawInfo[index].offsetY=someDrawInfo[4];
     modelDrawInfo[index].offsetZ=someDrawInfo[5];
 
+    //缩放参数
     modelDrawInfo[index].scaleX=someDrawInfo[6];
     modelDrawInfo[index].scaleY=someDrawInfo[7];
     modelDrawInfo[index].scaleZ=someDrawInfo[8];
 
+    //自定义颜色参数
     modelDrawInfo[index].r=someDrawInfo[9];
     modelDrawInfo[index].g=someDrawInfo[10];
     modelDrawInfo[index].b=someDrawInfo[11];
     modelDrawInfo[index].a=someDrawInfo[12];
     modelDrawInfo[index].u_ifCertainColor=someDrawInfo[13];
 
+    //是否隐藏
     modelDrawInfo[index].ifShow=someDrawInfo[14];
 
 }
