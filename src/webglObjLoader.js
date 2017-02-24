@@ -174,7 +174,7 @@ var DrawingInfo = function(vertices, normals, colors, indices, textureVt) {
     this.textureVt=textureVt;
 };
 
-//这个函数还是需要的，还是需要创建这个临时变量?? 重新考虑吧
+//这个函数目前还是需要的
 var OBJDoc = function(fileName) {
     this.fileName = fileName;
     this.mtls = new Array(0);      // Initialize the property for MTL
@@ -395,7 +395,6 @@ function onReadMTLFile(fileString, mtl, modelObject, index, mtlArray) {
 // Read a file from .....
 //传入模型对象数组，后面的两个array是最后判断是不是加载完成了的
 //新增加一个index标识，modelObject, mtlArray, objArray,都根据这个标识判定
-
 
 function OBJDocparser (fileString, modelObject, mtlArray, objArray, scale, reverse, index) {
     var lines = fileString.split('\n');  // Break up into lines and store them as array
